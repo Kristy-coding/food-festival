@@ -21,18 +21,54 @@
 
 const webpack = require("webpack")
 const path = require("path");
+const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
 
 module.exports = {
-  entry: "./assets/js/script.js",
+  entry: {
+    app: "./assets/js/script.js",
+    events: "./assets/js/events.js",
+    schedule: "./assets/js/schedule.js",
+    tickets: "./assets/js/tickets.js"
+  },
   output: {
-    path: path.join(__dirname + "/dist"),
-    filename: "main.bundle.js"
+    filename: "[name].bundle.js",
+    path: __dirname + "/dist",
+  },
+  //In the config object, we added an object to the rules array. This object will identify the type of files to pre-process using the test property to find a regular expression, or regex. In our case, we are trying to process any image file with the file extension of .jpg. We could expand this expression to also search for other image file extensions such as .png, .svg, or .gif
+  module: {
+    rules: [
+      {
+        test: /\.jpg$/i,
+        use: [
+          {
+            loader: 'file-loader',
+            options: {
+              name(file) {
+                return "[path][name].[ext]"
+              },
+              publicPath: function(url){
+                return url.replace("../", "assets/")
+              }
+            }
+          },
+          {
+            loader: 'image-webpack-loader'
+          }
+        ]
+      }
+    ]
   },
   plugins: [
-  new webpack.ProvidePlugin({
-    $: "jquery",
-    jQuery: "jquery"
-  }),
+    new webpack.ProvidePlugin({
+      $: "jquery",
+      jQuery: "jquery"
+    }),
+    //Notice that when we added the BundleAnalyzerPlugin, we configured the analyzerMode property with a static value. This will output an HTML file called report.html that will generate in the dist folder.
+    //We can also set this value to disable to temporarily stop the reporting and automatic opening of this report in the browser.
+    new BundleAnalyzerPlugin({
+      analyzerMode: "static", // the report outputs to an HTML file in the dist folder
+    })
+
   ],
   mode: "development"
 };
